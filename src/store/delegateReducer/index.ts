@@ -1,3 +1,4 @@
+import { RootStateType } from "./../rootReducer";
 import { InitialDelegateType, DelegateType } from "./types";
 import { DelegatesAPI } from "../../network/api";
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
@@ -11,7 +12,7 @@ export const getDelegates = createAsyncThunk(
 );
 
 const initialState: InitialDelegateType = {
-  delegates: [],
+  delegates: null,
 };
 
 const Delegate = createSlice({
@@ -19,7 +20,7 @@ const Delegate = createSlice({
   initialState,
   reducers: {
     clearDelegates(state) {
-      state.delegates = [];
+      state.delegates = null;
     },
   },
   extraReducers: (builder) => {
@@ -31,6 +32,9 @@ const Delegate = createSlice({
     );
   },
 });
+
+export const getListDelegates = (state: RootStateType) =>
+  state.delegates.delegates;
 
 export const { clearDelegates } = Delegate.actions;
 export default Delegate.reducer;

@@ -1,47 +1,60 @@
+import { RootStateType } from "./../rootReducer";
 import { WalletsAPI } from "./../../network/api";
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { InitialWalletStateType, TransactionType, WalletType } from "./types";
+import {
+  InitialWalletStateType,
+  TransactionType,
+  WalletCreateType,
+  WalletImportSendType,
+  WalletType,
+} from "./types";
 import createWalletUtils from "../../utils/createWallet";
-
-export const createWallet = createAsyncThunk(
-  "wallet/createWallet",
-  async (arg: { name: string }, { rejectWithValue }) => {
-    const wallet = createWalletUtils(arg.name);
-    console.log(wallet);
-  }
-);
 
 export const importWalletFromAdress = createAsyncThunk(
   "wallet/importWalletFromAdress",
-  async (arg: { name: string; address: string }, { rejectWithValue }) => {
+  async (arg: WalletImportSendType, { rejectWithValue }) => {
     try {
       const response = await WalletsAPI.getWalletFromAdress(arg.address);
       return { name: arg.name, ...response.data.data };
     } catch (error) {
-      return rejectWithValue(error.response.data);
+      if (error.response) {
+        return rejectWithValue(error.response.data);
+      } else if (error.request) {
+        return rejectWithValue(error.request);
+      } else {
+        return rejectWithValue(error.message);
+      }
     }
   }
 );
 
 export const getWalletTransactions = createAsyncThunk(
   "wallet/getWalletTransactions",
-  async (arg: { publicKey: string }) => {
-    const response = await WalletsAPI.getWalletTransactions(arg.publicKey);
+  async (publicKey: string) => {
+    const response = await WalletsAPI.getWalletTransactions(publicKey);
     return response.data.data;
   }
 );
 
 const initialState: InitialWalletStateType = {
   walletsInfo: [],
-  transactions: [],
+  transactions: null,
+  currentWallet: null,
 };
 
 const Wallet = createSlice({
   name: "wallet",
   initialState,
   reducers: {
+    createWallet(state, action: PayloadAction<WalletCreateType>) {
+      const wallet = createWalletUtils(action.payload.name);
+      state.walletsInfo.push(wallet);
+    },
+    setCurrentWallet(state, action: PayloadAction<WalletType | null>) {
+      state.currentWallet = action.payload;
+    },
     clearTransactions(state) {
-      state.transactions = [];
+      state.transactions = null;
     },
   },
   extraReducers: (builder) => {
@@ -57,8 +70,21 @@ const Wallet = createSlice({
         state.transactions = action.payload;
       }
     );
+    builder.addCase(getWalletTransactions.rejected, (state) => {
+      state.transactions = [];
+    });
   },
 });
 
-export const { clearTransactions } = Wallet.actions;
+export const getCurrentWallet = (state: RootStateType) =>
+  state.wallets.currentWallet;
+export const getWallets = (state: RootStateType) => state.wallets.walletsInfo;
+export const getTransactions = (state: RootStateType) =>
+  state.wallets.transactions;
+
+export const {
+  createWallet,
+  setCurrentWallet,
+  clearTransactions,
+} = Wallet.actions;
 export default Wallet.reducer;

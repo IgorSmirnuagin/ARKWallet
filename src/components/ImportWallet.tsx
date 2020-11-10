@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { useDispatch } from "react-redux";
 
 import { importWalletFromAdress } from "../store/walletReducer";
-import { WalletType } from "../store/walletReducer/types";
+import { WalletImportSendType, WalletType } from "../store/walletReducer/types";
 
 type PropsType = {
   wallets: WalletType[];
@@ -19,21 +19,25 @@ const ImportWallet: React.FC<PropsType> = ({
   const dispatch = useDispatch();
   const { handleSubmit, register, errors, setError } = useForm();
 
+  if (!isImportWalletOpen) {
+    return null;
+  }
+
   const isThisWalletExist = (
     propsField: string,
     walletField: "name" | "address" | "publicKey",
     errorMessage: string
   ) => {
     if (wallets.find((wallet) => wallet[walletField] === propsField)) {
-      setError("address", {
-        message: errorMessage,
-      });
+      setError("address", { message: errorMessage });
       return true;
-    } else return false;
+    } else {
+      return false;
+    }
   };
 
-  const importWallet = async (props: any) => {
-    if (
+  const importWallet = async (props: WalletImportSendType) => {
+    const isSuccess =
       !isThisWalletExist(
         props.address,
         "publicKey",
@@ -48,8 +52,8 @@ const ImportWallet: React.FC<PropsType> = ({
         props.name,
         "name",
         "Wallet with this name already exist"
-      )
-    ) {
+      );
+    if (isSuccess) {
       const response = await dispatch(importWalletFromAdress(props));
       //@ts-ignore
       if (response?.error) {
@@ -63,38 +67,41 @@ const ImportWallet: React.FC<PropsType> = ({
 
   return (
     <>
-    <h3 className="text-2xl font-bold leading-tight text-gray-900 pt-5 pb-5">Import wallet</h3>
-    <form
-      onSubmit={handleSubmit(importWallet)}
-      style={{ display: "flex", flexDirection: "column", width: "100%" }}
-    >
-      <div className="shadow-lg overflow-hidden sm:rounded-md">
-        <div className="px-4 py-5 bg-white sm:p-6">
-          <div className="col-span-6 sm:col-span-3 mb-5">
-            <input
-              id="name"
-              name="name"
-              ref={register}
-              required
-              placeholder="Enter wallet name"
-              className="mt-1 form-input block w-full transition duration-150 ease-in-out sm:text-sm sm:leading-5"
-            />
-          </div>
-          <div className="col-span-6 sm:col-span-3 mb-5">
-            <input
-              name="address"
-              ref={register}
-              required
-              placeholder="Enter wallets address or public key"
-              className="mt-1 form-input block w-full transition duration-150 ease-in-out sm:text-sm sm:leading-5"
-            />
-          </div>
-          <button type="submit" className="btn">Import wallet</button>
+      <h3 className="text-2xl font-bold leading-tight text-gray-900 pt-5 pb-5 pl-5">
+        Import wallet
+      </h3>
+      <form onSubmit={handleSubmit(importWallet)}>
+        <div className="shadow-lg overflow-hidden sm:rounded-md">
+          <div className="px-4 py-5 bg-white sm:p-6">
+            <div className="col-span-6 sm:col-span-3 mb-5">
+              <input
+                id="name"
+                name="name"
+                ref={register}
+                required
+                placeholder="Enter wallet name"
+                className="mt-1 form-input block w-full transition duration-150 ease-in-out sm:text-sm sm:leading-5"
+              />
+            </div>
+            <div className="col-span-6 sm:col-span-3 mb-5">
+              <input
+                name="address"
+                ref={register}
+                required
+                placeholder="Enter wallets address or public key"
+                className="mt-1 form-input block w-full transition duration-150 ease-in-out sm:text-sm sm:leading-5"
+              />
+            </div>
+            <button type="submit" className="btn">
+              Import wallet
+            </button>
 
-          {errors.address && <p className="mt-2 text-red-500">{errors.address.message}</p>}
+            {errors.address && (
+              <p className="mt-2 text-red-500">{errors.address.message}</p>
+            )}
+          </div>
         </div>
-      </div>
-    </form>
+      </form>
     </>
   );
 };

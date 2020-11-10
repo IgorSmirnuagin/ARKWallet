@@ -17,4 +17,4 @@ export type DelegateType = {
   votes: string;
 };
 
-export type InitialDelegateType = { delegates: DelegateType[] };
+export type InitialDelegateType = { delegates: DelegateType[] | null };

@@ -6,14 +6,16 @@ type multiSignatureType = {
 export type WalletType = {
   name: string;
   address: string;
-  attributes: { multiSignature: multiSignatureType };
+  attributes?: { multiSignature: multiSignatureType };
   balance: string;
-  isDelegate: boolean;
-  isResigned: boolean;
-  multiSignature: multiSignatureType;
-  nonce: string;
+  isDelegate?: boolean;
+  isResigned?: boolean;
+  multiSignature?: multiSignatureType;
+  nonce?: string;
   publicKey: string;
-  vote: string;
+  privateKey?: string;
+  vote?: string;
+  compressed?: boolean;
 };
 
 export type TransactionType = {
@@ -39,5 +41,9 @@ export type TransactionType = {
 
 export type InitialWalletStateType = {
   walletsInfo: WalletType[];
-  transactions: TransactionType[];
+  transactions: TransactionType[] | null;
+  currentWallet: WalletType | null;
 };
+
+export type WalletImportSendType = { name: string; address: string };
+export type WalletCreateType = { name: string };
